@@ -77,6 +77,9 @@ class _ClassicIndicator extends StatefulWidget {
   /// False for down and right.
   final bool reverse;
 
+  /// Icon when [IndicatorMode.processing].
+  final Widget? processingIcon;
+
   /// Icon when [IndicatorResult.success].
   final Widget? succeededIcon;
 
@@ -133,6 +136,7 @@ class _ClassicIndicator extends StatefulWidget {
     this.textDimension,
     this.iconDimension = 24,
     this.spacing = 16,
+    this.processingIcon,
     this.succeededIcon,
     this.failedIcon,
     this.noMoreIcon,
@@ -276,23 +280,23 @@ class _ClassicIndicatorState extends State<_ClassicIndicator>
       iconKey = const ValueKey(IndicatorResult.noMore);
       icon = SizedBox(
         child: widget.noMoreIcon ??
-            const Icon(
-              Icons.inbox_outlined,
-            ),
+            Icon(Icons.inbox_outlined, size: widget.iconDimension),
       );
     } else if (_mode == IndicatorMode.processing ||
         _mode == IndicatorMode.ready) {
       iconKey = const ValueKey(IndicatorMode.processing);
+
       final progressIndicatorSize =
           widget.progressIndicatorSize ?? _kDefaultProgressIndicatorSize;
       icon = SizedBox(
         width: progressIndicatorSize,
         height: progressIndicatorSize,
-        child: CircularProgressIndicator(
-          strokeWidth: widget.progressIndicatorStrokeWidth ??
-              _kDefaultProgressIndicatorStrokeWidth,
-          color: iconTheme.color,
-        ),
+        child: widget.processingIcon ??
+            CircularProgressIndicator(
+              strokeWidth: widget.progressIndicatorStrokeWidth ??
+                  _kDefaultProgressIndicatorStrokeWidth,
+              color: iconTheme.color,
+            ),
       );
     } else if (_mode == IndicatorMode.processed ||
         _mode == IndicatorMode.done) {
@@ -300,9 +304,7 @@ class _ClassicIndicatorState extends State<_ClassicIndicator>
         iconKey = const ValueKey(IndicatorResult.fail);
         icon = SizedBox(
           child: widget.failedIcon ??
-              const Icon(
-                Icons.error_outline,
-              ),
+              Icon(Icons.error_outline, size: widget.iconDimension),
         );
       } else {
         iconKey = const ValueKey(IndicatorResult.success);
@@ -310,9 +312,7 @@ class _ClassicIndicatorState extends State<_ClassicIndicator>
           child: widget.succeededIcon ??
               Transform.rotate(
                 angle: _axis == Axis.vertical ? 0 : -math.pi / 2,
-                child: const Icon(
-                  Icons.done,
-                ),
+                child: Icon(Icons.done, size: widget.iconDimension),
               ),
         );
       }
@@ -321,11 +321,15 @@ class _ClassicIndicatorState extends State<_ClassicIndicator>
       icon = SizedBox(
         child: Transform.rotate(
           angle: -math.pi * _iconAnimationController.value,
-          child: Icon(widget.reverse
-              ? (_axis == Axis.vertical ? Icons.arrow_upward : Icons.arrow_back)
-              : (_axis == Axis.vertical
-                  ? Icons.arrow_downward
-                  : Icons.arrow_forward)),
+          child: Icon(
+              widget.reverse
+                  ? (_axis == Axis.vertical
+                      ? Icons.arrow_upward
+                      : Icons.arrow_back)
+                  : (_axis == Axis.vertical
+                      ? Icons.arrow_downward
+                      : Icons.arrow_forward),
+              size: widget.iconDimension),
         ),
       );
     }

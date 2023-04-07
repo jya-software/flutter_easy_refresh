@@ -53,6 +53,9 @@ class ClassicHeader extends Header {
   /// Spacing between text and icon.
   final double spacing;
 
+  /// Icon when [IndicatorMode.processing].
+  final Widget? processingIcon;
+
   /// Icon when [IndicatorResult.success].
   final Widget? succeededIcon;
 
@@ -123,6 +126,7 @@ class ClassicHeader extends Header {
     this.textDimension,
     this.iconDimension = 24,
     this.spacing = 16,
+    this.processingIcon,
     this.succeededIcon,
     this.failedIcon,
     this.noMoreIcon,
@@ -175,6 +179,7 @@ class ClassicHeader extends Header {
       iconDimension: iconDimension,
       spacing: spacing,
       reverse: state.reverse,
+      processingIcon: processingIcon,
       succeededIcon: succeededIcon,
       failedIcon: failedIcon,
       noMoreIcon: noMoreIcon,
