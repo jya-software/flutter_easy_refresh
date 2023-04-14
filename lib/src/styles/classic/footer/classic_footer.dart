@@ -43,6 +43,8 @@ class ClassicFooter extends Footer {
   /// Whether to display message.
   final bool showMessage;
 
+  final bool hideDefaultIcon;
+
   /// The dimension of the text area.
   /// When less than 0, calculate the length of the text widget.
   final double? textDimension;
@@ -139,6 +141,7 @@ class ClassicFooter extends Footer {
     this.iconTheme,
     this.progressIndicatorSize,
     this.progressIndicatorStrokeWidth,
+    this.hideDefaultIcon = false,
   }) : super(
           triggerOffset: triggerOffset,
           clamping: clamping,
@@ -180,6 +183,7 @@ class ClassicFooter extends Footer {
       spacing: spacing,
       reverse: !state.reverse,
       processingIcon: processingIcon,
+      hideDefaultIcon: hideDefaultIcon,
       succeededIcon: succeededIcon,
       failedIcon: failedIcon,
       noMoreIcon: noMoreIcon,

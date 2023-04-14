@@ -77,6 +77,9 @@ class _ClassicIndicator extends StatefulWidget {
   /// False for down and right.
   final bool reverse;
 
+  /// 不展示默认的icon
+  final bool hideDefaultIcon;
+
   /// Icon when [IndicatorMode.processing].
   final Widget? processingIcon;
 
@@ -136,6 +139,7 @@ class _ClassicIndicator extends StatefulWidget {
     this.textDimension,
     this.iconDimension = 24,
     this.spacing = 16,
+    this.hideDefaultIcon = false,
     this.processingIcon,
     this.succeededIcon,
     this.failedIcon,
@@ -268,90 +272,113 @@ class _ClassicIndicatorState extends State<_ClassicIndicator>
   }
 
   /// Build icon.
-  Widget _buildIcon() {
+  Widget? _buildIcon() {
     if (widget.pullIconBuilder != null) {
       return widget.pullIconBuilder!
           .call(context, widget.state, _iconAnimationController.value);
     }
-    Widget icon;
+    Widget? icon;
     final iconTheme = widget.iconTheme ?? Theme.of(context).iconTheme;
     ValueKey iconKey;
     if (_result == IndicatorResult.noMore) {
       iconKey = const ValueKey(IndicatorResult.noMore);
-      icon = SizedBox(
-        child: widget.noMoreIcon ??
-            Icon(Icons.inbox_outlined, size: widget.iconDimension),
-      );
+      if (widget.hideDefaultIcon) {
+        icon = widget.noMoreIcon;
+      } else {
+        icon = SizedBox(
+          child: widget.noMoreIcon ??
+              Icon(Icons.inbox_outlined, size: widget.iconDimension),
+        );
+      }
     } else if (_mode == IndicatorMode.processing ||
         _mode == IndicatorMode.ready) {
       iconKey = const ValueKey(IndicatorMode.processing);
 
       final progressIndicatorSize =
           widget.progressIndicatorSize ?? _kDefaultProgressIndicatorSize;
-      icon = SizedBox(
-        width: progressIndicatorSize,
-        height: progressIndicatorSize,
-        child: widget.processingIcon ??
-            CircularProgressIndicator(
-              strokeWidth: widget.progressIndicatorStrokeWidth ??
-                  _kDefaultProgressIndicatorStrokeWidth,
-              color: iconTheme.color,
-            ),
-      );
+      if (widget.hideDefaultIcon) {
+        icon = widget.processingIcon;
+      } else {
+        icon = SizedBox(
+          width: progressIndicatorSize,
+          height: progressIndicatorSize,
+          child: widget.processingIcon ??
+              CircularProgressIndicator(
+                strokeWidth: widget.progressIndicatorStrokeWidth ??
+                    _kDefaultProgressIndicatorStrokeWidth,
+                color: iconTheme.color,
+              ),
+        );
+      }
     } else if (_mode == IndicatorMode.processed ||
         _mode == IndicatorMode.done) {
       if (_result == IndicatorResult.fail) {
         iconKey = const ValueKey(IndicatorResult.fail);
-        icon = SizedBox(
-          child: widget.failedIcon ??
-              Icon(Icons.error_outline, size: widget.iconDimension),
-        );
+        if (widget.hideDefaultIcon) {
+          icon = widget.failedIcon;
+        } else {
+          icon = SizedBox(
+            child: widget.failedIcon ??
+                Icon(Icons.error_outline, size: widget.iconDimension),
+          );
+        }
       } else {
         iconKey = const ValueKey(IndicatorResult.success);
-        icon = SizedBox(
-          child: widget.succeededIcon ??
-              Transform.rotate(
-                angle: _axis == Axis.vertical ? 0 : -math.pi / 2,
-                child: Icon(Icons.done, size: widget.iconDimension),
-              ),
-        );
+        if (widget.hideDefaultIcon) {
+          icon = widget.succeededIcon;
+        } else {
+          icon = SizedBox(
+            child: widget.succeededIcon ??
+                Transform.rotate(
+                  angle: _axis == Axis.vertical ? 0 : -math.pi / 2,
+                  child: Icon(Icons.done, size: widget.iconDimension),
+                ),
+          );
+        }
       }
     } else {
       iconKey = const ValueKey(IndicatorMode.drag);
-      icon = SizedBox(
-        child: Transform.rotate(
-          angle: -math.pi * _iconAnimationController.value,
-          child: Icon(
-              widget.reverse
-                  ? (_axis == Axis.vertical
-                      ? Icons.arrow_upward
-                      : Icons.arrow_back)
-                  : (_axis == Axis.vertical
-                      ? Icons.arrow_downward
-                      : Icons.arrow_forward),
-              size: widget.iconDimension),
+      if (widget.hideDefaultIcon) {
+        icon = null;
+      } else {
+        icon = SizedBox(
+          child: Transform.rotate(
+            angle: -math.pi * _iconAnimationController.value,
+            child: Icon(
+                widget.reverse
+                    ? (_axis == Axis.vertical
+                        ? Icons.arrow_upward
+                        : Icons.arrow_back)
+                    : (_axis == Axis.vertical
+                        ? Icons.arrow_downward
+                        : Icons.arrow_forward),
+                size: widget.iconDimension),
+          ),
+        );
+      }
+    }
+    if (icon != null) {
+      return AnimatedSwitcher(
+        key: _iconAnimatedSwitcherKey,
+        duration: const Duration(milliseconds: 300),
+        reverseDuration: const Duration(milliseconds: 200),
+        transitionBuilder: (child, animation) {
+          return FadeTransition(
+            opacity: animation,
+            child: ScaleTransition(
+              scale: animation,
+              child: child,
+            ),
+          );
+        },
+        child: IconTheme(
+          key: iconKey,
+          data: iconTheme,
+          child: icon,
         ),
       );
     }
-    return AnimatedSwitcher(
-      key: _iconAnimatedSwitcherKey,
-      duration: const Duration(milliseconds: 300),
-      reverseDuration: const Duration(milliseconds: 200),
-      transitionBuilder: (child, animation) {
-        return FadeTransition(
-          opacity: animation,
-          child: ScaleTransition(
-            scale: animation,
-            child: child,
-          ),
-        );
-      },
-      child: IconTheme(
-        key: iconKey,
-        data: iconTheme,
-        child: icon,
-      ),
-    );
+    return null;
   }
 
   /// Build text.
@@ -420,17 +447,21 @@ class _ClassicIndicatorState extends State<_ClassicIndicator>
 
   /// The body when the list is vertically direction.
   Widget _buildVerticalBody() {
+    final icon = _buildIcon();
+    final iconWidget = icon == null
+        ? SizedBox.shrink()
+        : Container(
+            alignment: Alignment.center,
+            height: widget.iconDimension,
+            child: icon,
+          );
     return Container(
       alignment: Alignment.center,
       height: _triggerOffset,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            alignment: Alignment.center,
-            width: widget.iconDimension,
-            child: _buildIcon(),
-          ),
+          iconWidget,
           if (widget.showText)
             Container(
               margin: EdgeInsets.only(left: widget.spacing),
@@ -490,6 +521,14 @@ class _ClassicIndicatorState extends State<_ClassicIndicator>
 
   /// The body when the list is horizontal direction.
   Widget _buildHorizontalBody() {
+    final icon = _buildIcon();
+    final iconWidget = icon == null
+        ? SizedBox.shrink()
+        : Container(
+            alignment: Alignment.center,
+            height: widget.iconDimension,
+            child: icon,
+          );
     return Container(
       alignment: Alignment.center,
       width: _triggerOffset,
@@ -512,11 +551,7 @@ class _ClassicIndicatorState extends State<_ClassicIndicator>
                 ),
               ),
             ),
-          Container(
-            alignment: Alignment.center,
-            height: widget.iconDimension,
-            child: _buildIcon(),
-          ),
+          iconWidget,
         ],
       ),
     );

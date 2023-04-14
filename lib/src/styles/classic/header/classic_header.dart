@@ -43,6 +43,9 @@ class ClassicHeader extends Header {
   /// Whether to display message.
   final bool showMessage;
 
+  /// Whether to hide the default icon.
+  final bool hideDefaultIcon;
+
   /// The dimension of the text area.
   /// When less than 0, calculate the length of the text widget.
   final double? textDimension;
@@ -139,6 +142,7 @@ class ClassicHeader extends Header {
     this.iconTheme,
     this.progressIndicatorSize,
     this.progressIndicatorStrokeWidth,
+    this.hideDefaultIcon = false,
   }) : super(
           triggerOffset: triggerOffset,
           clamping: clamping,
@@ -179,6 +183,7 @@ class ClassicHeader extends Header {
       iconDimension: iconDimension,
       spacing: spacing,
       reverse: state.reverse,
+      hideDefaultIcon: hideDefaultIcon,
       processingIcon: processingIcon,
       succeededIcon: succeededIcon,
       failedIcon: failedIcon,
